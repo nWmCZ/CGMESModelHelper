@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.*?>
+<?import javafx.scene.shape.*?>
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.paint.*?>
+<?import javafx.scene.text.*?>
+
+<VBox fx:id="mainVBox" prefHeight="800.0" prefWidth="1024.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="eu.unicorn.helper.gui.MainWindowController">
+  <children>
+    <MenuBar VBox.vgrow="NEVER">
+      <menus>
+        <Menu mnemonicParsing="false" text="File">
+          <items>
+            <MenuItem mnemonicParsing="false" text="New" />
+            <MenuItem mnemonicParsing="false" text="Open…" />
+            <Menu mnemonicParsing="false" text="Open Recent" />
+            <SeparatorMenuItem mnemonicParsing="false" />
+            <MenuItem mnemonicParsing="false" text="Close" />
+            <MenuItem mnemonicParsing="false" text="Save" />
+            <MenuItem mnemonicParsing="false" text="Save As…" />
+            <MenuItem mnemonicParsing="false" text="Revert" />
+            <SeparatorMenuItem mnemonicParsing="false" />
+            <MenuItem mnemonicParsing="false" text="Preferences…" />
+            <SeparatorMenuItem mnemonicParsing="false" />
+            <MenuItem mnemonicParsing="false" text="Quit" />
+          </items>
+        </Menu>
+        <Menu mnemonicParsing="false" text="Edit">
+          <items>
+            <MenuItem mnemonicParsing="false" text="Undo" />
+            <MenuItem mnemonicParsing="false" text="Redo" />
+            <SeparatorMenuItem mnemonicParsing="false" />
+            <MenuItem mnemonicParsing="false" text="Cut" />
+            <MenuItem mnemonicParsing="false" text="Copy" />
+            <MenuItem mnemonicParsing="false" text="Paste" />
+            <MenuItem mnemonicParsing="false" text="Delete" />
+            <SeparatorMenuItem mnemonicParsing="false" />
+            <MenuItem mnemonicParsing="false" text="Select All" />
+            <MenuItem mnemonicParsing="false" text="Unselect All" />
+          </items>
+        </Menu>
+        <Menu mnemonicParsing="false" text="Help">
+          <items>
+            <MenuItem mnemonicParsing="false" text="About MyHelloApp" />
+          </items>
+        </Menu>
+      </menus>
+    </MenuBar>
+    <AnchorPane fx:id="anchorPaneMain" maxHeight="-1.0" maxWidth="-1.0" prefHeight="800.0" prefWidth="1024.0" VBox.vgrow="ALWAYS">
+         <children>
+            <Button fx:id="buttonUpload" layoutX="14.0" layoutY="14.0" mnemonicParsing="false" onAction="#buttonUploadOnAction" text="Upload files" />
+            <Label fx:id="labelParsingTime" layoutX="14.0" layoutY="48.0" prefHeight="25.0" prefWidth="438.0" text="Parsing time:" />
+            <TextField fx:id="textFieldProfileType" editable="false" layoutX="600.0" layoutY="10.0" prefHeight="25.0" prefWidth="385.0" promptText="Profile Type" />
+            <TextField fx:id="textFieldProfileRdfAbout" layoutX="600.0" layoutY="45.0" prefHeight="25.0" prefWidth="385.0" promptText="Profile RdfAbout" />
+            <TextField fx:id="textFieldProfileVersion" layoutX="600.0" layoutY="150.0" prefHeight="25.0" prefWidth="385.0" promptText="Version" />
+            <TextField fx:id="textFieldProfileAutoritySet" layoutX="600.0" layoutY="185.0" prefHeight="25.0" prefWidth="385.0" promptText="Authority Set" />
+            <ListView fx:id="listViewProfileDependentOn" layoutX="600.0" layoutY="250.0" prefHeight="200.0" prefWidth="385.0" />
+            <Label layoutX="600.0" layoutY="221.0" prefHeight="20.0" prefWidth="250.0" text="DependentOn:" />
+            <CheckBox fx:id="checkBoxCustomPrefix" layoutX="538.0" layoutY="512.0" mnemonicParsing="false" onAction="#customPrefixOnAction" text="Custom Prefix" />
+            <CheckBox fx:id="checkBoxCustomPostfix" layoutX="538.0" layoutY="546.0" mnemonicParsing="false" onAction="#customPostfixOnAction" text="Custom Postfix" />
+            <TextField fx:id="textFieldCustomPrefix" disable="true" layoutX="676.0" layoutY="508.0" prefHeight="27.0" prefWidth="309.0" />
+            <TextField fx:id="textFieldCustomPostfix" disable="true" layoutX="676.0" layoutY="542.0" prefHeight="27.0" prefWidth="309.0" />
+            <TextField fx:id="textFieldSaveDestination" layoutX="535.0" layoutY="618.0" prefHeight="27.0" prefWidth="385.0" promptText="Saving Path" />
+            <Button fx:id="buttonSaveToDestination" disable="true" layoutX="690.0" layoutY="652.0" mnemonicParsing="false" onAction="#buttonSaveToDestinationOnAction" prefHeight="27.0" prefWidth="145.0" text="Save to Destination" />
+            <ChoiceBox fx:id="choiseBoxSaveAs" layoutX="538.0" layoutY="652.0" prefHeight="27.0" prefWidth="145.0" />
+            <Button fx:id="buttonSendToOpdeClient" disable="true" layoutX="840.0" layoutY="652.0" mnemonicParsing="false" onAction="#buttonSendToOpdeClientOnAction" prefHeight="27.0" prefWidth="145.0" text="Send to OPDE Client" />
+            <Button fx:id="buttonTPBD" disable="true" layoutX="107.0" layoutY="114.0" mnemonicParsing="false" onAction="#buttonTPBDOnAction" prefHeight="64.0" prefWidth="64.0" text="TP_BD" />
+             <Button fx:id="buttonEQBD" disable="true" layoutX="275.0" layoutY="114.0" mnemonicParsing="false" onAction="#buttonEQBDOnAction" prefHeight="64.0" prefWidth="64.0" text="EQ_BD" />
+            <Button fx:id="buttonEQ" disable="true" layoutX="275.0" layoutY="282.0" mnemonicParsing="false" onAction="#buttonEQOnAction" prefHeight="64.0" prefWidth="64.0" text="EQ" />
+             <Button fx:id="buttonTP" disable="true" layoutX="275.0" layoutY="450.0" mnemonicParsing="false" onAction="#buttonTPOnAction" prefHeight="64.0" prefWidth="64.0" text="TP" />
+            <Button fx:id="buttonSSH" disable="true" layoutX="443.0" layoutY="282.0" mnemonicParsing="false" onAction="#buttonSSHOnAction" prefHeight="64.0" prefWidth="64.0" text="SSH" />
+            <Button fx:id="buttonSV" disable="true" layoutX="276.0" layoutY="616.0" mnemonicParsing="false" onAction="#buttonSVOnAction" prefHeight="64.0" prefWidth="64.0" text="SV" />
+            <Line fx:id="lineTPBDtoEQBD" endX="100.0" fill="RED" layoutX="173.0" layoutY="150.0" stroke="RED" strokeWidth="4.0" />
+            <Line fx:id="lineEQtoEQBD" endY="100.0" fill="RED" layoutX="310.0" layoutY="180.0" stroke="RED" strokeWidth="4.0" />
+            <Line fx:id="lineSSHtoEQ" endX="100.0" fill="RED" layoutX="341.0" layoutY="314.0" stroke="RED" strokeWidth="4.0" />
+            <Line fx:id="lineTPtoEQ" endY="100.0" fill="RED" layoutX="312.0" layoutY="348.0" stroke="RED" strokeWidth="4.0" />
+            <Line fx:id="lineSVtoTP" endY="100.0" fill="RED" layoutX="310.0" layoutY="514.0" stroke="RED" strokeWidth="4.0" />
+            <Line fx:id="lineSVtoTPBD" endX="135.0" endY="440.0" fill="RED" layoutX="141.0" layoutY="178.0" stroke="RED" strokeWidth="4.0" />
+            <Line fx:id="lineSVtoSSH" endX="100.0" endY="-270.0" fill="RED" layoutX="341.0" layoutY="616.0" stroke="RED" strokeWidth="4.0" />
+            <Button fx:id="buttonChooseSavePath" layoutX="920.0" layoutY="618.0" mnemonicParsing="false" onAction="#buttonChooseSavePathOnAction" text="Choose" />
+            <CheckBox fx:id="checkBoxAll" disable="true" layoutX="535.0" layoutY="590.0" mnemonicParsing="false" onAction="#checkBoxAllOnAction" text="All" />
+            <CheckBox fx:id="checkBoxSV" disable="true" layoutX="591.0" layoutY="590.0" mnemonicParsing="false" text="SV" />
+            <CheckBox fx:id="checkBoxTP" disable="true" layoutX="649.0" layoutY="590.0" mnemonicParsing="false" text="TP" />
+            <CheckBox fx:id="checkBoxSSH" disable="true" layoutX="714.0" layoutY="590.0" mnemonicParsing="false" text="SSH" />
+            <CheckBox fx:id="checkBoxEQ" disable="true" layoutX="773.0" layoutY="590.0" mnemonicParsing="false" text="EQ" />
+            <CheckBox fx:id="checkBoxTPBD" disable="true" layoutX="830.0" layoutY="590.0" mnemonicParsing="false" text="TP_BD" />
+            <CheckBox fx:id="checkBoxEQBD" disable="true" layoutX="913.0" layoutY="590.0" mnemonicParsing="false" text="EQ_BD" />
+            <TextField fx:id="textFieldCreated" layoutX="600.0" layoutY="80.0" prefHeight="25.0" prefWidth="385.0" promptText="Created" />
+            <TextField fx:id="textFieldScenarioTime" layoutX="600.0" layoutY="115.0" prefHeight="25.0" prefWidth="385.0" promptText="Scenario Time" />
+         </children>
+    </AnchorPane>
+  </children>
+</VBox>
