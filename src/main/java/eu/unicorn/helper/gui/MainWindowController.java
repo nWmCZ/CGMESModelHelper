@@ -4,7 +4,7 @@ import eu.unicorn.cgmes.model.CgmesProfileDesc;
 import eu.unicorn.cgmes.model.CgmesProfileType;
 import eu.unicorn.cgmes.model.Model;
 import eu.unicorn.helper.model.HelperModel;
-import eu.unicorn.helper.model.ParsingResult;
+import eu.unicorn.helper.model.ProfileField;
 import eu.unicorn.helper.utils.ConfigurationSaveAs;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
@@ -26,7 +26,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static eu.unicorn.cgmes.model.CgmesProfileType.*;
-import static eu.unicorn.helper.model.HelperModel.getCgmesProfileTypeFromModel;
+import static eu.unicorn.helper.model.HelperModel.DATE_PATTERN;
 
 public class MainWindowController {
 
@@ -45,8 +45,8 @@ public class MainWindowController {
         // TODO make it as application.properties
         String customPrefix = "PREF_";
         String customPostfix = "_POST";
-        String defaultSavePath = "/Work/qas2_work_folder/profiles/Test_HappyDay/output/";
-        ConfigurationSaveAs saveAs = ConfigurationSaveAs.XML;
+        String defaultSavePathXML = "/Work/qas2_work_folder/profiles/Test_HappyDay/output/";
+        String defaultSavePathZIP = "/Work/qas2_work_folder/profiles/Test_HappyDay/output/";
 
         if (customPrefix != null && customPrefix.length() > 0) {
             textFieldCustomPrefix.setText(customPrefix);
@@ -56,12 +56,15 @@ public class MainWindowController {
             textFieldCustomPostfix.setText(customPostfix);
         }
 
-        if (defaultSavePath != null && defaultSavePath.length() > 0) {
-            textFieldSaveDestination.setText(defaultSavePath);
-            buttonSaveToDestination.setDisable(false);
+        if (defaultSavePathXML != null && defaultSavePathXML.length() > 0) {
+            textFieldSaveDestinationXML.setText(defaultSavePathXML);
         }
 
-        choiseBoxSaveAs.setValue(saveAs);
+        if (defaultSavePathZIP != null && defaultSavePathZIP.length() > 0) {
+            textFieldSaveDestinationZIP.setText(defaultSavePathZIP);
+        }
+
+        choiseBoxSaveAs.setValue(ConfigurationSaveAs.XML);
     }
 
     @FXML
@@ -91,6 +94,7 @@ public class MainWindowController {
             checkBoxTP.setSelected(true);
             checkBoxTPBD.setSelected(true);
             checkBoxEQBD.setSelected(true);
+            checkedCheckBoxCount = 6;
         } else {
             checkBoxSV.setSelected(false);
             checkBoxSSH.setSelected(false);
@@ -98,72 +102,83 @@ public class MainWindowController {
             checkBoxTP.setSelected(false);
             checkBoxTPBD.setSelected(false);
             checkBoxEQBD.setSelected(false);
+            checkedCheckBoxCount = 0;
+        }
+        updateCheckboxes(checkedCheckBoxCount);
+    }
+
+    private int checkedCheckBoxCount;
+
+    private void updateCheckboxes(int size) {
+        if (checkedCheckBoxCount > 0) {
+            buttonSaveToDestination.setDisable(false);
+        } else {
+            buttonSaveToDestination.setDisable(true);
+            checkBoxAll.setSelected(false);
         }
     }
 
     @FXML
-    void buttonSVOnAction(ActionEvent event) {
-        Optional<Model> model = helperModel.getModelByType(STATE_VARIABLES);
-        if (model.isPresent()) {
-            populateFields(model.get());
+    void checkBoxSingleOnAction(ActionEvent event) {
+        CheckBox checked = (CheckBox) event.getSource();
+        if (checked.isSelected()) {
+            checkedCheckBoxCount++;
+            System.out.println(checkedCheckBoxCount);
         } else {
-            System.out.println("Model not present, it cannot be populated to GUI");
+            checkedCheckBoxCount--;
+            System.out.println(checkedCheckBoxCount);
         }
+        updateCheckboxes(checkedCheckBoxCount);
+    }
+
+    private Map<ProfileField, String> changedValues = new HashMap<>();
+    @FXML
+    void textBoxProfileValuesChanged(ActionEvent event) {
+        // TODO not working event
+        buttonUpdateModel.setDisable(false);
+        TextField sourceTextField = (TextField) event.getSource();
+        CgmesProfileType profileType = CgmesProfileType.valueOf(textFieldProfileType.getText());
+//        if (changedValues.containsKey(profileType)) {
+//            changedValues.replace(ProfileField.VERSION, sourceTextField.getText());
+//        }
+    }
+
+    private ProfileField getProfileField(TextField textField) {
+        // TODO
+        return ProfileField.VERSION;
     }
 
     @FXML
-    void buttonSSHOnAction(ActionEvent event) {
-        // TODO refactor to one method
-        Optional<Model> model = helperModel.getModelByType(STEADY_STATE_HYPOTHESIS);
-        if (model.isPresent()) {
-            populateFields(model.get());
-        } else {
-            System.out.println("Model not present, it cannot be populated to GUI");
-        }
+    void buttonUpdateModelOnAction(ActionEvent event) {
+        Map<ProfileField, String> configuration = new HashMap<>();
+
+        configuration.put(ProfileField.RDF_ABOUT, textFieldProfileRdfAbout.getText());
+        configuration.put(ProfileField.CREATED, textFieldCreated.getText());
+        configuration.put(ProfileField.SCENARIO_TIME, textFieldScenarioTime.getText());
+        configuration.put(ProfileField.VERSION, textFieldProfileVersion.getText());
+        configuration.put(ProfileField.AUTORITY_SET, textFieldProfileAutoritySet.getText());
+
+        helperModel.updateProfile(CgmesProfileType.valueOf(textFieldProfileType.getText()), configuration);
     }
 
     @FXML
-    void buttonEQOnAction(ActionEvent event) {
-        // TODO refactor to one method
-        Optional<Model> model = helperModel.getModelByType(EQUIPMENT);
-        if (model.isPresent()) {
-            populateFields(model.get());
+    void buttonModelOnAction(ActionEvent event) {
+        Button button = (Button) event.getSource();
+        Optional<CgmesProfileDesc> model;
+        if (button.getId().equals(buttonSV.getId())) {
+            model = helperModel.getCgmesProfileDesc(STATE_VARIABLES);
+        } else if (button.getId().equals(buttonSSH.getId())) {
+            model = helperModel.getCgmesProfileDesc(STEADY_STATE_HYPOTHESIS);
+        } else if (button.getId().equals(buttonEQ.getId())) {
+            model = helperModel.getCgmesProfileDesc(EQUIPMENT);
+        } else if (button.getId().equals(buttonTP.getId())) {
+            model = helperModel.getCgmesProfileDesc(TOPOLOGY);
+        } else if (button.getId().equals(buttonEQBD.getId())) {
+            model = helperModel.getCgmesProfileDesc(EQUIPMENT_BOUNDARY);
         } else {
-            System.out.println("Model not present, it cannot be populated to GUI");
+            model = helperModel.getCgmesProfileDesc(TOPOLOGY_BOUNDARY);
         }
-    }
-
-    @FXML
-    void buttonTPOnAction(ActionEvent event) {
-        // TODO refactor to one method
-        Optional<Model> model = helperModel.getModelByType(TOPOLOGY);
-        if (model.isPresent()) {
-            populateFields(model.get());
-        } else {
-            System.out.println("Model not present, it cannot be populated to GUI");
-        }
-    }
-
-    @FXML
-    void buttonTPBDOnAction(ActionEvent event) {
-        // TODO refactor to one method
-        Optional<Model> model = helperModel.getModelByType(TOPOLOGY_BOUNDARY);
-        if (model.isPresent()) {
-            populateFields(model.get());
-        } else {
-            System.out.println("Model not present, it cannot be populated to GUI");
-        }
-    }
-
-    @FXML
-    void buttonEQBDOnAction(ActionEvent event) {
-        // TODO refactor to one method
-        Optional<Model> model = helperModel.getModelByType(EQUIPMENT_BOUNDARY);
-        if (model.isPresent()) {
-            populateFields(model.get());
-        } else {
-            System.out.println("Model not present, it cannot be populated to GUI");
-        }
+        populateFields(model.get());
     }
 
     @FXML
@@ -177,7 +192,15 @@ public class MainWindowController {
         if (checkBoxTPBD.isSelected()) profilesToSend.add(CgmesProfileType.TOPOLOGY_BOUNDARY);
         if (checkBoxEQBD.isSelected()) profilesToSend.add(CgmesProfileType.EQUIPMENT_BOUNDARY);
 
-        helperModel.saveToDestination(choiseBoxSaveAs.getValue(), textFieldSaveDestination.getText(), profilesToSend.toArray(new CgmesProfileType[profilesToSend.size()]));
+        Map<ConfigurationSaveAs, String> map = new HashMap();
+        if (choiseBoxSaveAs.getValue().equals(ConfigurationSaveAs.XML)) {
+
+            map.put(ConfigurationSaveAs.XML, textFieldSaveDestinationXML.getText());
+            helperModel.saveToDestination(choiseBoxSaveAs.getValue(), map , profilesToSend.toArray(new CgmesProfileType[profilesToSend.size()]));
+        } else if (choiseBoxSaveAs.getValue().equals(ConfigurationSaveAs.ZIP)) {
+            map.put(ConfigurationSaveAs.ZIP, textFieldSaveDestinationZIP.getText());
+            helperModel.saveToDestination(choiseBoxSaveAs.getValue(), map, profilesToSend.toArray(new CgmesProfileType[profilesToSend.size()]));
+        }
     }
 
     @FXML
@@ -187,12 +210,19 @@ public class MainWindowController {
 
     @FXML
     void buttonChooseSavePathOnAction(ActionEvent event) {
+
+        Button button = (Button )event.getSource();
+
         DirectoryChooser directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle("Open Path");
         File f = directoryChooser.showDialog(mainVBox.getScene().getWindow());
         if (f != null) {
-            textFieldSaveDestination.setText(f.getAbsolutePath());
-            buttonSaveToDestination.setDisable(false);
+            switch (button.getId()) {
+                case "buttonChooseSavePathXML":
+                    textFieldSaveDestinationXML.setText(f.getAbsolutePath());
+                    buttonSaveToDestination.setDisable(false);
+                case "buttonChooseSavePathZIP":
+            }
             // TODO when sending to OPDE is implemented
             // buttonSendToOpdeClient.setDisable(false);
         }
@@ -203,64 +233,54 @@ public class MainWindowController {
     @FXML
     void buttonUploadOnAction(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Open Resource File");
-        File file = fileChooser.showOpenDialog(mainVBox.getScene().getWindow());
+        fileChooser.setTitle("Open Resource Files");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("ZIP", "*.zip"));
+        List<File> files = fileChooser.showOpenMultipleDialog(mainVBox.getScene().getWindow());
 
-        ParsingResult parsingResult = helperModel.parseInput(file);
-        labelParsingTime.setText("Parsing time: " + parsingResult.getParsingTime());
+        Model model = helperModel.parseInput(files);
+        if (model.getCgmesProfileDescs().size() == 6) {
+            checkBoxAll.setDisable(false);
+        }
+        processParsedModel(model);
+    }
 
-        if (parsingResult.getException() == null) {
-            processParsingResult(parsingResult);
-        } else {
-            Alert a = new Alert(Alert.AlertType.ERROR);
-            a.setWidth(400);
-            a.setHeight(400);
-            Exception e = parsingResult.getException();
-            a.setContentText(e.getMessage() + "\n" + e.getStackTrace().toString());
-            a.show();
+    private void processParsedModel(Model model) {
+
+        for (CgmesProfileDesc profileDescription: model.getCgmesProfileDescs().values()) {
+            switch (profileDescription.getCgmesProfileType()) {
+                case STATE_VARIABLES:
+                    buttonSV.setDisable(false);
+                    checkBoxSV.setDisable(false);
+                    break;
+                case TOPOLOGY:
+                    buttonTP.setDisable(false);
+                    checkBoxTP.setDisable(false);
+                    break;
+                case STEADY_STATE_HYPOTHESIS:
+                    buttonSSH.setDisable(false);
+                    checkBoxSSH.setDisable(false);
+                    break;
+                case EQUIPMENT:
+                    buttonEQ.setDisable(false);
+                    checkBoxEQ.setDisable(false);
+                    break;
+                case TOPOLOGY_BOUNDARY:
+                    buttonTPBD.setDisable(false);
+                    checkBoxTPBD.setDisable(false);
+                    break;
+                case EQUIPMENT_BOUNDARY:
+                    buttonEQBD.setDisable(false);
+                    checkBoxEQBD.setDisable(false);
+                    break;
+            }
         }
     }
 
-    private void processParsingResult(ParsingResult parsingResult) {
-
-        CgmesProfileType profileType = parsingResult.getProfileType();
-        switch (profileType) {
-            case STATE_VARIABLES:
-                buttonSV.setDisable(false);
-                checkBoxSV.setDisable(false);
-                break;
-            case TOPOLOGY:
-                buttonTP.setDisable(false);
-                checkBoxTP.setDisable(false);
-                break;
-            case STEADY_STATE_HYPOTHESIS:
-                buttonSSH.setDisable(false);
-                checkBoxSSH.setDisable(false);
-                break;
-            case EQUIPMENT:
-                buttonEQ.setDisable(false);
-                checkBoxEQ.setDisable(false);
-                break;
-            case TOPOLOGY_BOUNDARY:
-                buttonTPBD.setDisable(false);
-                checkBoxTPBD.setDisable(false);
-                break;
-            case EQUIPMENT_BOUNDARY:
-                buttonEQBD.setDisable(false);
-                checkBoxEQBD.setDisable(false);
-                break;
-            default:
-                System.out.println("No profile recognized: " + profileType);
-        }
-
-        populateFields(parsingResult.getModel());
-    }
-
-    private void populateFields(Model model) {
-        textFieldProfileType.setText(getCgmesProfileTypeFromModel(model).toString());
-        CgmesProfileDesc profileDesc = model.getCgmesProfileDescs().values().iterator().next();
+    private void populateFields(CgmesProfileDesc profileDesc) {
+        textFieldProfileType.setText(profileDesc.getCgmesProfileType().toString());
         textFieldProfileRdfAbout.setText(profileDesc.getRdfId());
-        Format formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        Format formatter = new SimpleDateFormat(DATE_PATTERN);
 
         textFieldCreated.setText(formatter.format(profileDesc.getCreated()));
         textFieldScenarioTime.setText(formatter.format(profileDesc.getScenarioTime()));
@@ -354,7 +374,10 @@ public class MainWindowController {
     private CheckBox checkBoxCustomPrefix;
 
     @FXML
-    private TextField textFieldSaveDestination;
+    private TextField textFieldSaveDestinationXML;
+
+    @FXML
+    private TextField textFieldSaveDestinationZIP;
 
     @FXML
     private Line lineSVtoTP;
@@ -366,7 +389,16 @@ public class MainWindowController {
     private Button buttonSaveToDestination;
 
     @FXML
+    private Button buttonChooseSavePathXML;
+
+    @FXML
+    private Button buttonChooseSavePathZIP;
+
+    @FXML
     private Button buttonSendToOpdeClient;
+
+    @FXML
+    private Button buttonUpdateModel;
 
     @FXML
     private CheckBox checkBoxAll;

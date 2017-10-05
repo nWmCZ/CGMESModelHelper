@@ -39,6 +39,6 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 
-buildJavaFXJar {
-    // TODO https://www.jetbrains.com/help/idea/packaging-javafx-applications.html
-}
+//buildJavaFXJar {
+//    // TODO https://www.jetbrains.com/help/idea/packaging-javafx-applications.html
+//}

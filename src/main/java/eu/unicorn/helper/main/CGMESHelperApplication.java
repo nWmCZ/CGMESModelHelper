@@ -15,8 +15,9 @@ public class CGMESHelperApplication extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
+        System.setProperty("user.timezone", "UTC");
         Parent root = FXMLLoader.load(getClass().getClassLoader().getResource("MainWindow.fxml"));
-        primaryStage.setTitle("CGMES HelperModel Helper");
+        primaryStage.setTitle("CGMES Model Helper");
         primaryStage.setScene(new Scene(root, 1024, 800));
         primaryStage.show();
     }
