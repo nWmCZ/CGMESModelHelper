@@ -5,10 +5,12 @@ import eu.unicorn.cgmes.model.CgmesProfileType;
 import eu.unicorn.cgmes.model.Model;
 import eu.unicorn.helper.model.HelperModel;
 import eu.unicorn.helper.model.ProfileField;
+import eu.unicorn.helper.utils.ConfigurationParameter;
 import eu.unicorn.helper.utils.ConfigurationSaveAs;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
@@ -19,6 +21,8 @@ import javafx.scene.layout.VBox;
 import javafx.scene.shape.Line;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.text.Format;
@@ -31,6 +35,8 @@ import static eu.unicorn.helper.model.HelperModel.DATE_PATTERN;
 public class MainWindowController {
 
     private HelperModel helperModel;
+
+    Logger logger = LoggerFactory.getLogger(MainWindowController.class);
 
     @FXML
     public void initialize() {
@@ -133,8 +139,9 @@ public class MainWindowController {
 
     private Map<ProfileField, String> changedValues = new HashMap<>();
     @FXML
-    void textBoxProfileValuesChanged(ActionEvent event) {
+    void textBoxProfileValuesChanged(Event event) {
         // TODO not working event
+        logger.info(event.toString());
         buttonUpdateModel.setDisable(false);
         TextField sourceTextField = (TextField) event.getSource();
         CgmesProfileType profileType = CgmesProfileType.valueOf(textFieldProfileType.getText());
@@ -192,14 +199,34 @@ public class MainWindowController {
         if (checkBoxTPBD.isSelected()) profilesToSend.add(CgmesProfileType.TOPOLOGY_BOUNDARY);
         if (checkBoxEQBD.isSelected()) profilesToSend.add(CgmesProfileType.EQUIPMENT_BOUNDARY);
 
-        Map<ConfigurationSaveAs, String> map = new HashMap();
-        if (choiseBoxSaveAs.getValue().equals(ConfigurationSaveAs.XML)) {
+        Map<ConfigurationParameter, Object> configurationParameters = new HashMap<>();
 
-            map.put(ConfigurationSaveAs.XML, textFieldSaveDestinationXML.getText());
-            helperModel.saveToDestination(choiseBoxSaveAs.getValue(), map , profilesToSend.toArray(new CgmesProfileType[profilesToSend.size()]));
+        if (checkBoxGenerateAllNewIDs.isSelected()) {
+            configurationParameters.put(ConfigurationParameter.GENERATE_NEW_IDS, true);
+        }
+
+        if (checkBoxIncreaseVersion.isSelected()) {
+            configurationParameters.put(ConfigurationParameter.INCREASE_VERSIONS, true);
+        }
+
+        if (checkBoxCustomPrefix.isSelected()) {
+            configurationParameters.put(ConfigurationParameter.PREFIX, textFieldCustomPrefix.getText());
+        }
+
+        if (checkBoxCustomPostfix.isSelected()) {
+            configurationParameters.put(ConfigurationParameter.POSTFIX, textFieldCustomPostfix.getText());
+        }
+
+        Map<ConfigurationSaveAs, String> saveAsWithPath = new HashMap();
+        if (choiseBoxSaveAs.getValue().equals(ConfigurationSaveAs.XML)) {
+            saveAsWithPath.put(ConfigurationSaveAs.XML, textFieldSaveDestinationXML.getText());
+            helperModel.saveToDestination(configurationParameters, saveAsWithPath , profilesToSend.toArray(new CgmesProfileType[profilesToSend.size()]));
         } else if (choiseBoxSaveAs.getValue().equals(ConfigurationSaveAs.ZIP)) {
-            map.put(ConfigurationSaveAs.ZIP, textFieldSaveDestinationZIP.getText());
-            helperModel.saveToDestination(choiseBoxSaveAs.getValue(), map, profilesToSend.toArray(new CgmesProfileType[profilesToSend.size()]));
+            saveAsWithPath.put(ConfigurationSaveAs.ZIP, textFieldSaveDestinationZIP.getText());
+            helperModel.saveToDestination(configurationParameters, saveAsWithPath, profilesToSend.toArray(new CgmesProfileType[profilesToSend.size()]));
+        } else {
+            // TODO create for both
+            logger.error("Not implemented yet");
         }
     }
 
@@ -420,4 +447,10 @@ public class MainWindowController {
 
     @FXML
     private CheckBox checkBoxTPBD;
+
+    @FXML
+    private CheckBox checkBoxIncreaseVersion;
+
+    @FXML
+    private CheckBox checkBoxGenerateAllNewIDs;
 }

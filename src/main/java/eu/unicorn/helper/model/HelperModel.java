@@ -4,7 +4,12 @@ import eu.unicorn.cgmes.model.CgmesProfileDesc;
 import eu.unicorn.cgmes.model.CgmesProfileType;
 import eu.unicorn.cgmes.model.Model;
 import eu.unicorn.cgmes.stream.*;
+import eu.unicorn.cgmes.stream.model.CgmesAssociationConnector;
+import eu.unicorn.cgmes.stream.model.CgmesProfileDependencyConnector;
+import eu.unicorn.helper.utils.ConfigurationParameter;
 import eu.unicorn.helper.utils.ConfigurationSaveAs;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.stream.XMLStreamException;
 import java.io.*;
@@ -16,11 +21,15 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static java.lang.String.format;
+
 public class HelperModel {
 
     public static final String DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
 
     private Model model;
+
+    Logger logger = LoggerFactory.getLogger(HelperModel.class);
 
     public Model parseInput(List<File> files) {
         final CgmesReaderContext ctx = CgmesReaderFactory.getContext();
@@ -42,15 +51,36 @@ public class HelperModel {
                 long parsingTime = end - start;
             }
         }
+
+        logger.info("Resolving profile dependencies...");
+        start = System.currentTimeMillis();
+        final Set<CgmesProfileDependencyConnector> unresolvedDependencies = ctx.getProfileDependencyRegistry().resolveDependencies(ctx.getModel());
+        end = System.currentTimeMillis();
+        long dependencies = end - start;
+        logger.info(format("Profile dependencies resolved in %s ms", dependencies));
+        logger.info(format("Unresolved profile dependencies count: %s", unresolvedDependencies.size()));
+
+        logger.trace("Connecting associated classes...");
+        start = System.currentTimeMillis();
+        final Set<CgmesAssociationConnector> unsatisfiedConnections = ctx.getAssociationRegistry().connectEntities(ctx.getModel());
+        end = System.currentTimeMillis();
+        long associations = end - start;
+        logger.trace(format("Profile associations resolved in %s ms", associations));
+        logger.info(format("Unsatisfied associations count: %s", unsatisfiedConnections.size()));
+
+
+
         this.model = ctx.getModel();
         return ctx.getModel();
     }
 
-    public void saveToDestination(ConfigurationSaveAs configurationSaveAs, Map<ConfigurationSaveAs, String> path, CgmesProfileType... profileTypes) {
+    public void saveToDestination(Map<ConfigurationParameter, Object> configurationParameter, Map<ConfigurationSaveAs, String> path, CgmesProfileType... profileTypes) {
 
+        processConfigurationParameters(configurationParameter);
 
         for (CgmesProfileType profileType: profileTypes) {
-            switch (configurationSaveAs) {
+            // TODO not working for BOTH
+            switch (path.keySet().iterator().next()) {
                 case XML:
                     saveXML(profileType, path.get(ConfigurationSaveAs.XML), getFilenameXML(profileType) + "." + ConfigurationSaveAs.XML.toString().toLowerCase());
                     break;
@@ -61,6 +91,31 @@ public class HelperModel {
                     saveXML(profileType, path.get(ConfigurationSaveAs.XML), getFilenameXML(profileType) + "." +  ConfigurationSaveAs.XML.toString().toLowerCase());
                     saveZip(profileType, path.get(ConfigurationSaveAs.ZIP), getFilenameZIP(profileType) + "." +  ConfigurationSaveAs.ZIP.toString().toLowerCase());
             }
+        }
+    }
+
+    private void processConfigurationParameters(Map<ConfigurationParameter, Object> configurationParameter) {
+        // TODO learn how to do it with Producer and Consumer
+        if (configurationParameter.keySet().contains(ConfigurationParameter.INCREASE_VERSIONS)) {
+            this.model.getCgmesProfileDescs().values().stream().forEach(cgmesProfileDesc -> {
+                int version = Integer.parseInt(cgmesProfileDesc.getVersion());
+                cgmesProfileDesc.setVersion(fillToThree(String.valueOf(++version)));
+            });
+        }
+
+        if (configurationParameter.keySet().contains(ConfigurationParameter.GENERATE_NEW_IDS)) {
+
+            Object prefixObject = configurationParameter.get(ConfigurationParameter.PREFIX);
+            Object postfixObject = configurationParameter.get(ConfigurationParameter.POSTFIX);
+
+            String prefix = (prefixObject != null) ? configurationParameter.get(ConfigurationParameter.PREFIX).toString() : "";
+            String postfix = (postfixObject != null) ? configurationParameter.get(ConfigurationParameter.POSTFIX).toString() : "";
+
+            this.model.getCgmesProfileDescs().values().stream().forEach(cgmesProfileDesc -> {
+
+                String newId = prefix + UUID.randomUUID() + postfix;
+                cgmesProfileDesc.setRdfId(newId);
+            });
         }
     }
 

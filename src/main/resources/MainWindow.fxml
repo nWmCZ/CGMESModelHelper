@@ -95,6 +95,7 @@
             <CheckBox fx:id="checkBoxGenerateAllNewIDs" layoutX="538.0" layoutY="463.0" mnemonicParsing="false" text="Generate all new IDs" />
             <TextField fx:id="textFieldSaveDestinationZIP" layoutX="535.0" layoutY="648.0" prefHeight="27.0" prefWidth="385.0" promptText="Saving path for ZIP" />
             <Button fx:id="buttonChooseSavePathZIP" layoutX="920.0" layoutY="648.0" mnemonicParsing="false" onAction="#buttonChooseSavePathOnAction" text="Choose" />
+            <CheckBox fx:id="checkBoxIncreaseVersion" layoutX="728.0" layoutY="463.0" mnemonicParsing="false" text="Increase version" />
          </children>
     </AnchorPane>
   </children>
