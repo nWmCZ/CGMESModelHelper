@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -218,15 +219,16 @@ public class MainWindowController {
         }
 
         Map<ConfigurationSaveAs, String> saveAsWithPath = new HashMap();
-        if (choiseBoxSaveAs.getValue().equals(ConfigurationSaveAs.XML)) {
-            saveAsWithPath.put(ConfigurationSaveAs.XML, textFieldSaveDestinationXML.getText());
-            helperModel.saveToDestination(configurationParameters, saveAsWithPath , profilesToSend.toArray(new CgmesProfileType[profilesToSend.size()]));
-        } else if (choiseBoxSaveAs.getValue().equals(ConfigurationSaveAs.ZIP)) {
+
+        if (choiseBoxSaveAs.getValue().equals(ConfigurationSaveAs.ZIP)) {
             saveAsWithPath.put(ConfigurationSaveAs.ZIP, textFieldSaveDestinationZIP.getText());
+        }
+        saveAsWithPath.put(ConfigurationSaveAs.XML, textFieldSaveDestinationXML.getText());
+        try {
             helperModel.saveToDestination(configurationParameters, saveAsWithPath, profilesToSend.toArray(new CgmesProfileType[profilesToSend.size()]));
-        } else {
-            // TODO create for both
-            logger.error("Not implemented yet");
+        } catch (IOException e) {
+            // TODO handle exception
+            e.printStackTrace();
         }
     }
 
