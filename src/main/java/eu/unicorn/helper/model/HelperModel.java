@@ -11,18 +11,15 @@ import eu.unicorn.helper.utils.ConfigurationSaveAs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.stream.XMLStreamException;
 import java.io.*;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
+import static eu.unicorn.helper.utils.FileUtils.saveXML;
+import static eu.unicorn.helper.utils.FileUtils.saveZip;
+import static eu.unicorn.helper.utils.NameUtils.*;
 import static java.lang.String.format;
 
 public class HelperModel {
@@ -81,7 +78,7 @@ public class HelperModel {
         Map<CgmesProfileType, File> profiles = new HashMap<>();
 
         for (CgmesProfileType profileType: profileTypes) {
-            profiles.put(profileType, saveXML(profileType, path.get(ConfigurationSaveAs.XML), getFilenameXML(profileType) + "." + ConfigurationSaveAs.XML.toString().toLowerCase()));
+            profiles.put(profileType, saveXML(profileType, path.get(ConfigurationSaveAs.XML), getFilenameXML(getCgmesProfileDesc(profileType).get()) + "." + ConfigurationSaveAs.XML.toString().toLowerCase(), this.model));
         }
 
         if (path.size() == 2) {
@@ -93,7 +90,7 @@ public class HelperModel {
                 }
             }
             // Boundary profiles in one zip
-            saveZip(path.get(ConfigurationSaveAs.ZIP), profiles.get(CgmesProfileType.TOPOLOGY_BOUNDARY), profiles.get(CgmesProfileType.EQUIPMENT_BOUNDARY));
+            saveZip(path.get(ConfigurationSaveAs.ZIP), getFilenameZIPforBD(getCgmesProfileDesc(CgmesProfileType.TOPOLOGY_BOUNDARY).get()), profiles.get(CgmesProfileType.TOPOLOGY_BOUNDARY), profiles.get(CgmesProfileType.EQUIPMENT_BOUNDARY));
         }
     }
 
@@ -121,79 +118,7 @@ public class HelperModel {
         }
     }
 
-    // 20140601T0000Z_ENTSO-E_BD_001.zip
-    private String getFilenameZIP(CgmesProfileType cgmesProfileType) {
-        Optional<CgmesProfileDesc> profileDesc = getCgmesProfileDesc(cgmesProfileType);
-        if (profileDesc.isPresent()) {
-            Date date = profileDesc.get().getScenarioTime();
-            LocalDateTime localDatetime = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-            int year   = localDatetime.getYear();
-            int month  = localDatetime.getMonthValue();
-            int day    = localDatetime.getDayOfMonth();
-            int hour   = localDatetime.getHour();
-            int minute = localDatetime.getMinute();
 
-            String version = profileDesc.get().getVersion();
-
-            switch (cgmesProfileType) {
-                case EQUIPMENT_BOUNDARY:
-                    return String.valueOf(year) + fillToTwo(String.valueOf(month)) + fillToTwo(String.valueOf(day)) + "T" + String.valueOf(hour) + String.valueOf(minute) + "Z_ENTSOE-E_BD_" + fillToThree(version);
-                case TOPOLOGY_BOUNDARY:
-                    return String.valueOf(year) + fillToTwo(String.valueOf(month)) + fillToTwo(String.valueOf(day)) + "T" + String.valueOf(hour) + String.valueOf(minute) + "Z_ENTSOE-E_BD_" + fillToThree(version);
-                default: return "undefined";
-            }
-        } else {
-            return "undefined";
-        }
-    }
-
-    // 20140601T0000Z_ENTSO-E_EQ_BD_001.xml and 20140601T0000Z_ENTSO-E_TP_BD_001.xml
-    // 20140601T1030Z_01_ELIA_SSH_001.xml TP SV
-    // 20140601T1030Z_ELIA_EQ_001.xml
-    private String getFilenameXML(CgmesProfileType cgmesProfileType) {
-        Optional<CgmesProfileDesc> profileDesc = getCgmesProfileDesc(cgmesProfileType);
-        if (profileDesc.isPresent()) {
-            Date date = profileDesc.get().getScenarioTime();
-            LocalDateTime localDatetime = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-            int year   = localDatetime.getYear();
-            int month  = localDatetime.getMonthValue();
-            int day    = localDatetime.getDayOfMonth();
-            int hour   = localDatetime.getHour();
-            int minute = localDatetime.getMinute();
-
-            String version = profileDesc.get().getVersion();
-
-            // TODO resolve tso name
-            String tso = "ELIA";
-            // TODO resolve resolution
-            String resolution = "01";
-            switch (cgmesProfileType) {
-                case EQUIPMENT:
-                    return String.valueOf(year) + fillToTwo(String.valueOf(month)) + fillToTwo(String.valueOf(day)) + "T" + String.valueOf(hour) + String.valueOf(minute) + "Z_" + tso + "_EQ_" + fillToThree(version);
-                case TOPOLOGY:
-                    return String.valueOf(year) + fillToTwo(String.valueOf(month)) + fillToTwo(String.valueOf(day)) + "T" + String.valueOf(hour) + String.valueOf(minute) + "Z_" + resolution + "_"+ tso + "_TP_" + fillToThree(version);
-                case STATE_VARIABLES:
-                    return String.valueOf(year) + fillToTwo(String.valueOf(month)) + fillToTwo(String.valueOf(day)) + "T" + String.valueOf(hour) + String.valueOf(minute) + "Z_" + resolution + "_"+ tso + "_SV_" + fillToThree(version);
-                case STEADY_STATE_HYPOTHESIS:
-                    return String.valueOf(year) + fillToTwo(String.valueOf(month)) + fillToTwo(String.valueOf(day)) + "T" + String.valueOf(hour) + String.valueOf(minute) + "Z_" + resolution + "_"+ tso + "_EQ_" + fillToThree(version);
-                case EQUIPMENT_BOUNDARY:
-                    return String.valueOf(year) + fillToTwo(String.valueOf(month)) + fillToTwo(String.valueOf(day)) + "T" + String.valueOf(hour) + String.valueOf(minute) + "Z_ENTSOE-E_EQ_BD_" + fillToThree(version);
-                case TOPOLOGY_BOUNDARY:
-                    return String.valueOf(year) + fillToTwo(String.valueOf(month)) + fillToTwo(String.valueOf(day)) + "T" + String.valueOf(hour) + String.valueOf(minute) + "Z_ENTSOE-E_TP_BD_" + fillToThree(version);
-                    default: return "undefined";
-            }
-        } else {
-            return "undefined";
-        }
-    }
-
-    private String fillToThree(String string) {
-        return ("000" + string).substring(string.length());
-    }
-
-    private String fillToTwo(String string) {
-        return ("00" + string).substring(string.length());
-    }
 
     public void updateProfile(CgmesProfileType profileType, Map<ProfileField, String> changedValues) {
 
@@ -213,83 +138,6 @@ public class HelperModel {
             // TODO fix to 3 positions
             cgmesProfileType.get().setVersion(("000" + version).substring(version.length()));
             cgmesProfileType.get().setModelingAuthoritySet(changedValues.get(ProfileField.AUTORITY_SET));
-        }
-    }
-
-    private File saveXML(CgmesProfileType profileType, String path, String filename) {
-
-            final CgmesWriterContext writerCtx = CgmesWriterFactory.getContext(this.model);
-
-            final CgmesWriter writer = CgmesWriterFactory.getWriter();
-
-            OutputStream outputStream;
-            File file;
-
-            file = new File(path, filename);
-            try {
-                outputStream = new FileOutputStream(file);
-                writer.write(outputStream, profileType, writerCtx);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (XMLStreamException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return file;
-    }
-
-    private void saveZip(String path, File... files) throws IOException {
-
-        if (files.length == 1) {
-            String name = files[0].getName();
-            String[] nameWithoutExtension = name.split("\\.");
-            File zipFile = new File(path, nameWithoutExtension[0] + "." + ConfigurationSaveAs.ZIP.toString().toLowerCase());
-            FileOutputStream fos = null;
-
-            FileInputStream fis = new FileInputStream(files[0]);
-
-            fos = new FileOutputStream(zipFile);
-            ZipOutputStream zipOut = new ZipOutputStream(fos);
-
-            ZipEntry zipEntry = new ZipEntry(files[0].getName());
-            zipOut.putNextEntry(zipEntry);
-
-            final byte[] bytes = new byte[1024];
-            int length;
-            while((length = fis.read(bytes)) >= 0) {
-                zipOut.write(bytes, 0, length);
-            }
-            zipOut.close();
-            fis.close();
-            fos.close();
-
-        } else {
-
-            String name = getFilenameZIP(CgmesProfileType.TOPOLOGY_BOUNDARY);
-            File zipFile = new File(path, name + "." + ConfigurationSaveAs.ZIP.toString().toLowerCase());
-
-            FileOutputStream fos = null;
-
-            fos = new FileOutputStream(zipFile);
-            ZipOutputStream zipOut = new ZipOutputStream(fos);
-
-            for (File file : files) {
-
-                FileInputStream fis = new FileInputStream(file);
-
-                ZipEntry zipEntry = new ZipEntry(file.getName());
-                zipOut.putNextEntry(zipEntry);
-
-                final byte[] bytes = new byte[1024];
-                int length;
-                while((length = fis.read(bytes)) >= 0) {
-                    zipOut.write(bytes, 0, length);
-                }
-                fis.close();
-            }
-            zipOut.close();
-            fos.close();
         }
     }
 

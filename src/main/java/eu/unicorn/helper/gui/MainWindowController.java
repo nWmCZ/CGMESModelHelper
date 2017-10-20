@@ -257,8 +257,6 @@ public class MainWindowController {
         }
     }
 
-
-
     @FXML
     void buttonUploadOnAction(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
@@ -266,6 +264,9 @@ public class MainWindowController {
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("ZIP", "*.zip"));
         List<File> files = fileChooser.showOpenMultipleDialog(mainVBox.getScene().getWindow());
+
+        // TODO try unzip files
+        //ParsingResult parsingResult = FileUtils.getXmlFilesFromInpput(files);
 
         Model model = helperModel.parseInput(files);
         if (model.getCgmesProfileDescs().size() == 6) {
