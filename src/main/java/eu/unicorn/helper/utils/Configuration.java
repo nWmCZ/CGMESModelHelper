@@ -39,6 +39,9 @@ public enum Configuration {
                 CgmesProfileType.EQUIPMENT_BOUNDARY
         ));
         // EQ_BD is not dependentOn anything
+        igmMap.put(CgmesProfileType.EQUIPMENT_BOUNDARY,
+                Collections.emptySet()
+        );
 
         return igmMap;
     }

@@ -59,7 +59,7 @@ public class NameUtils {
         String version = profileDesc.getVersion();
 
         if (profileDesc.getCgmesProfileType().equals(CgmesProfileType.EQUIPMENT_BOUNDARY) || profileDesc.getCgmesProfileType().equals(CgmesProfileType.TOPOLOGY_BOUNDARY)) {
-            return String.valueOf(year) + fillToTwo(String.valueOf(month)) + fillToTwo(String.valueOf(day)) + "T" + String.valueOf(hour) + String.valueOf(minute) + "Z_ENTSOE-E_BD_" + fillToThree(version);
+            return String.valueOf(year) + fillToTwo(String.valueOf(month)) + fillToTwo(String.valueOf(day)) + "T" + String.valueOf(hour) + String.valueOf(minute) + "Z_ENTSO-E_BD_" + fillToThree(version);
         } else {
             return "undefined";
         }
